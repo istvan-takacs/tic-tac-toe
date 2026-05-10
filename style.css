@@ -1,0 +1,40 @@
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    padding: 0;
+    margin: 0;
+}
+
+body {
+    font-family: "Poppins", "sans-serif";
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+}
+
+.header {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 1rem;
+}
+
+.game-container {
+    border-radius: 10px;
+    width: min(80vh, 80vw);
+    aspect-ratio: 1;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    border: solid rgb(42, 5, 8);
+}
+
+.square {
+    border: 0.5px solid rgba(81, 72, 186, 0.2);
+    background:#d5e4de;
+    border-radius: 10px;
+}
