@@ -38,3 +38,12 @@ body {
     background:#d5e4de;
     border-radius: 10px;
 }
+
+dialog {
+    border: none;
+    border-radius: 10px;
+    padding: 2rem;
+    width: 90%;
+    box-shadow: 0 8px 30px rgb(0, 0, 0, 0.2);
+    margin: auto;
+}

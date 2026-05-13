@@ -13,6 +13,20 @@
         <p class="turn"></p>
     </div>
     <div class="game-container"></div>
+    <dialog id="player-select">
+            <form method="dialog" class="player-dialog">
+                <h2>Choose your name and marker!</h2>
+
+                <label for="name">Name</label>
+                <input type="text" id="player-name" name="player-name" required>
+
+                <div class="mark-select">
+                    <p>Play as either X or O</p>
+                    <button type="submit" id="player-marker-x">X</button>
+                    <button type="submit" id="player-marker-o">O</button>
+                </div>
+            </form>
+        </dialog>
     <div class="game-end">
         <p class="message"></p>
     </div>

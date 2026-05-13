@@ -64,6 +64,16 @@ const game = (function GameController() {
 
     const getBoard = () => board.getBoard();
     const getActivePlayer = () => activePlayer;
+    const setPlayer = (name, mark) => {
+        if (mark === "X") {
+            playerX.name = name;
+            activePlayer = playerX;
+        }
+        if (mark === "O") {
+            playerO.name = name;
+            activePlayer = playerO;
+        }
+    }
 
     const switchPlayerTurn = () => {
         activePlayer = activePlayer === playerX ? playerO : playerX;
@@ -126,6 +136,7 @@ const game = (function GameController() {
 
     return {
         getActivePlayer,
+        setPlayer,
         playTurn,
         getBoard
     }
@@ -135,6 +146,18 @@ const game = (function GameController() {
 const displayController = (function () {
     let gameOverFlag = false;
     const gameContainer = document.querySelector(".game-container");
+    const dialogWindow = document.querySelector("#player-select");
+    const markerBtns = document.querySelectorAll(".mark-select button");
+    // Add event listeneres to dialog buttons
+    markerBtns.forEach((btn) => {
+            btn.addEventListener("click", () => {
+                const playerName = document.querySelector("#player-name").value;
+                game.setPlayer(playerName, btn.textContent);
+                dialogWindow.close();
+                updateDisplay();
+            })
+        })
+    dialogWindow.showModal();
     gameContainer.innerHTML = "";
 
     for (let i = 0; i < 9; i++) {
