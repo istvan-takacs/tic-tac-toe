@@ -1,5 +1,6 @@
 // Gameboard object
 function Gameboard() {
+    
     const board = [];
 
     for (let i = 0; i < 3; i++) {
@@ -11,6 +12,10 @@ function Gameboard() {
 
     const getBoard = () => board;
 
+    const resetBoard = () => {
+        board.forEach(row => row.forEach(cell => cell.resetValue()));
+    };
+
     const markCell = (cell, player) => {
         if (cell.getValue() === "") {
             cell.mark(player)
@@ -20,17 +25,10 @@ function Gameboard() {
         }
     } 
 
-    const printBoard = () => {
-        const boardCells = board.map((row) => 
-            row.map((cell) => cell.getValue())
-        );
-        console.log(boardCells);
-    }
-
     return {
         getBoard,
         markCell,
-        printBoard
+        resetBoard
     }
 }
 
@@ -44,58 +42,55 @@ function Cell() {
 
     const getValue = () => value;
 
+    const resetValue = () => {value = ""};
+
     return {
         mark,
-        getValue
+        getValue,
+        resetValue
     }
 }
 
 // Player object
-function Player(name, mark) {
-    return { name, mark };
+function Player(name, mark, score) {
+    return { name, mark, score };
 }
 
 // GameController IIFE
 const game = (function GameController() {
     const board = Gameboard();
-    const playerX = Player("Player X", "X");
-    const playerO = Player("Player O", "O");
+    const playerX = Player("Player X", "X", 0);
+    const playerO = Player("Player O", "O", 0);
     let activePlayer = playerX;
+    let startingPlayer = playerX;
 
     const getBoard = () => board.getBoard();
     const getActivePlayer = () => activePlayer;
+    const getPlayers = () => [playerX, playerO]
     const setPlayer = (name, mark) => {
         if (mark === "X") {
             playerX.name = name;
             activePlayer = playerX;
+            startingPlayer = playerX;
         }
         if (mark === "O") {
             playerO.name = name;
             activePlayer = playerO;
+            startingPlayer = playerO;
         }
     }
 
     const switchPlayerTurn = () => {
         activePlayer = activePlayer === playerX ? playerO : playerX;
     }
-    const printTurn = () => {
-        board.printBoard();
-        console.log(`${getActivePlayer().name}'s turn to play...`)
-    }
     const playTurn = (row, column) => {
         const freeCell = board.markCell(board.getBoard()[row][column], getActivePlayer().mark);
         if (freeCell) {
-            const gameOver = checkGameEnd();
-            if (!gameOver) {
-                switchPlayerTurn();
-                printTurn();    
-            }
-            return gameOver;
-        } else {
-            console.log(`Cell row:${row} column:${column} is already occupied please try again!`)
-        }
-        return false
-        
+            const result = checkGameEnd();
+            if (!result.over) switchPlayerTurn();
+            return result;
+
+        } else return { over: false };
     }
     const checkGameEnd = () => {
         const boardArray = board.getBoard();
@@ -114,31 +109,31 @@ const game = (function GameController() {
             return values.every(x => x !=="" && x === values[0]);
         }
         )
-        if (!win) {
-            const tie = boardArray.every((row) =>
-                row.every((cell) => cell.getValue() !== "")
-            )
-            if (tie) {
-                const gameEnd = document.querySelector(".game-end .message");
-                gameEnd.textContent = "It's a tie! Game over...";
-                console.log("It's a tie! Game over...")
-                return true
-            }
-        } else {
-            const gameEnd = document.querySelector(".game-end .message");
-            gameEnd.textContent = `Game is over, we have a winner: ${getActivePlayer().name}!`
-            console.log(`Game is over, we have a winner: ${getActivePlayer().name}!`)
-            return true
+        if (win) {
+            getActivePlayer().score++;
+            return { over: true, winner: getActivePlayer() };
         }
-        };
+        const tie = boardArray.every((row) =>
+            row.every((cell) => cell.getValue() !== "")
+        );
+        if (tie) return { over: true, winner: null };
 
-    printTurn();
+        return { over: false };
+    };
+
+    const resetGame = () => {
+        board.resetBoard();
+        startingPlayer = startingPlayer === playerX ? playerO : playerX;
+        activePlayer = startingPlayer;
+    };
 
     return {
         getActivePlayer,
+        getPlayers,
         setPlayer,
         playTurn,
-        getBoard
+        getBoard,
+        resetGame
     }
 
 })();
@@ -158,27 +153,32 @@ const displayController = (function () {
             })
         })
     dialogWindow.showModal();
-    gameContainer.innerHTML = "";
 
-    for (let i = 0; i < 9; i++) {
-        let square = document.createElement("div");
-        square.classList.add("square");
-        square.dataset.row = Math.floor(i / 3);
-        square.dataset.col = i % 3;
-        gameContainer.appendChild(square);
+    const renderDisplay = () => {
+        gameContainer.innerHTML = "";
 
-        // Add event listeners to the cells
-        square.addEventListener("click", (e) => {
-            if (!gameOverFlag) {
-                const row = e.target.dataset.row;
-                const col = e.target.dataset.col;
-                gameOverFlag = game.playTurn(row, col); 
-                updateDisplay();
-            }
-        })
-    }
+        for (let i = 0; i < 9; i++) {
+            let square = document.createElement("div");
+            square.classList.add("square");
+            square.dataset.row = Math.floor(i / 3);
+            square.dataset.col = i % 3;
+            gameContainer.appendChild(square);
 
-    const updateDisplay = () => {
+            // Add event listeners to the cells
+            square.addEventListener("click", (e) => {
+                if (!gameOverFlag) {
+                    const row = e.target.dataset.row;
+                    const col = e.target.dataset.col;
+                    const result = game.playTurn(row, col);
+                    gameOverFlag = result.over;
+                    updateDisplay(result);
+
+                }
+            })
+        }
+        }
+
+    const updateDisplay = (result = { over : false}) => {
         const board = game.getBoard();
         const squares = document.querySelectorAll(".square");
         squares.forEach(square => {
@@ -186,16 +186,41 @@ const displayController = (function () {
             const col = square.dataset.col;
             square.textContent = board[row][col].getValue();
         })
-        // Update turn indicator
+        // Update turn indicator and scoresheet
         const activePlayer = game.getActivePlayer();
-        const activePlayerDOM = document.querySelector(".header .turn");
+        const [playerOne, playerTwo] = game.getPlayers();
+        const activePlayerDOM = document.querySelector("header .turn");
+        const scoreSheet = document.querySelector(".score");
+        scoreSheet.textContent = `Current score: ${playerOne.name} : ${playerTwo.name} ||  ${playerOne.score} : ${playerTwo.score}`
         if (!gameOverFlag) {
             activePlayerDOM.textContent = `${activePlayer.name}'s turn! Place an ${activePlayer.mark} in a free cell...`;
         } else {
             activePlayerDOM.textContent = "";
         }
-        
-
+        const gameEndMsg = document.querySelector(".game-end .message");
+        if (result.over) {
+            gameEndMsg.textContent = result.winner 
+                ? `${result.winner.name} wins!` 
+                : "It's a tie!";
         }
+        };
+
+    // Render and update the display    
+    renderDisplay();
+    
+    // Add event listener for Restart button
+    const restartBtn = document.querySelector("#restart");
+    restartBtn.addEventListener("click", () => {
+        // Reset the board
+        game.resetGame(); // Also switches player turn so whoever went first last goes second this time
+        // Reset gameOverFlag
+        gameOverFlag = false;
+        // Render and update display
+        renderDisplay();
+        updateDisplay();
+        // Wipe game end message
+        const gameEnd = document.querySelector(".game-end .message");
+        gameEnd.textContent = "";
+    })
     }
 )();

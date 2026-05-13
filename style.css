@@ -16,8 +16,9 @@ body {
     gap: 1rem;
 }
 
-.header {
+header {
     display: flex;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
     padding: 1rem;
@@ -28,6 +29,7 @@ body {
     width: min(80vh, 80vw);
     aspect-ratio: 1;
     display: grid;
+    gap: 10px;
     grid-template-columns: repeat(3, 1fr);
     grid-template-rows: repeat(3, 1fr);
     border: solid rgb(42, 5, 8);
@@ -37,6 +39,10 @@ body {
     border: 0.5px solid rgba(81, 72, 186, 0.2);
     background:#d5e4de;
     border-radius: 10px;
+}
+
+.square:hover {
+    cursor: pointer;
 }
 
 dialog {

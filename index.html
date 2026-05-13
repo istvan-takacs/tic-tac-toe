@@ -8,10 +8,11 @@
     <script src="script.js" defer></script>
 </head>
 <body>
-    <div class="header">
+    <header>
         <p>Tic Tac Toe</p>
+        <p class="score"></p>
         <p class="turn"></p>
-    </div>
+    </header>
     <div class="game-container"></div>
     <dialog id="player-select">
             <form method="dialog" class="player-dialog">
@@ -27,8 +28,9 @@
                 </div>
             </form>
         </dialog>
-    <div class="game-end">
+    <footer class="game-end">
         <p class="message"></p>
-    </div>
+        <button type="submit" id="restart">Restart</button>
+    </footer>
 </body>
 </html>
