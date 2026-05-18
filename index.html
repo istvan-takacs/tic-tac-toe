@@ -4,33 +4,36 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tic Tac Toe</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <script src="script.js" defer></script>
 </head>
 <body>
     <header>
-        <p>Tic Tac Toe</p>
+        <h1>Tic Tac Toe</h1>
         <p class="score"></p>
         <p class="turn"></p>
     </header>
     <div class="game-container"></div>
     <dialog id="player-select">
-            <form method="dialog" class="player-dialog">
-                <h2>Choose your name and marker!</h2>
+        <form method="dialog" class="player-dialog">
+            <h2>Choose your name and marker!</h2>
 
-                <label for="name">Name</label>
-                <input type="text" id="player-name" name="player-name" required>
+            <label for="player-name">Your Name</label>
+            <input type="text" id="player-name" name="player-name" placeholder="Enter your name" required>
 
-                <div class="mark-select">
-                    <p>Play as either X or O</p>
-                    <button type="submit" id="player-marker-x">X</button>
-                    <button type="submit" id="player-marker-o">O</button>
-                </div>
-            </form>
-        </dialog>
+            <div class="mark-select">
+                <p>Play as either X or O</p>
+                <button type="submit" id="player-marker-x">X</button>
+                <button type="submit" id="player-marker-o">O</button>
+            </div>
+        </form>
+    </dialog>
     <footer class="game-end">
         <p class="message"></p>
-        <button type="submit" id="restart">Restart</button>
+        <button type="button" id="restart">Restart</button>
     </footer>
 </body>
 </html>

@@ -6,50 +6,212 @@
     margin: 0;
 }
 
+:root {
+    --bg: #1a1a2e;
+    --header-bg: #16213e;
+    --card-bg: #d5e4de;
+    --card-hover: #c2d8d0;
+    --x-color: #e94560;
+    --o-color: #4a90d9;
+    --border-color: #0f3460;
+    --text-light: #eaeaea;
+    --accent: #e94560;
+}
+
 body {
-    font-family: "Poppins", "sans-serif";
+    font-family: "Poppins", sans-serif;
     height: 100vh;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
     gap: 1rem;
+    background: var(--bg);
+    color: var(--text-light);
 }
 
+/* Header */
 header {
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
+    gap: 0.3rem;
     padding: 1rem;
 }
 
+header h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: var(--text-light);
+}
+
+header .score {
+    font-size: 0.95rem;
+    color: #aaa;
+}
+
+header .turn {
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+/* Game grid */
 .game-container {
-    border-radius: 10px;
     width: min(80vh, 80vw);
     aspect-ratio: 1;
     display: grid;
     gap: 10px;
     grid-template-columns: repeat(3, 1fr);
     grid-template-rows: repeat(3, 1fr);
-    border: solid rgb(42, 5, 8);
+    padding: 10px;
+    background: var(--border-color);
+    border-radius: 16px;
 }
 
 .square {
-    border: 0.5px solid rgba(81, 72, 186, 0.2);
-    background:#d5e4de;
+    background: var(--card-bg);
     border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: clamp(2rem, 8vw, 4rem);
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.15s;
 }
 
 .square:hover {
-    cursor: pointer;
+    background: var(--card-hover);
 }
 
+.square[data-mark="X"] {
+    color: var(--x-color);
+    cursor: default;
+}
+
+.square[data-mark="X"]:hover {
+    background: var(--card-bg);
+}
+
+.square[data-mark="O"] {
+    color: var(--o-color);
+    cursor: default;
+}
+
+.square[data-mark="O"]:hover {
+    background: var(--card-bg);
+}
+
+/* Footer */
+.game-end {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.game-end .message {
+    font-size: 1.1rem;
+    font-weight: 600;
+    min-height: 1.5rem;
+}
+
+#restart {
+    padding: 0.5rem 1.5rem;
+    font-family: "Poppins", sans-serif;
+    font-size: 0.95rem;
+    font-weight: 600;
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+
+#restart:hover {
+    opacity: 0.85;
+}
+
+/* Dialog */
 dialog {
     border: none;
-    border-radius: 10px;
+    border-radius: 16px;
     padding: 2rem;
     width: 90%;
-    box-shadow: 0 8px 30px rgb(0, 0, 0, 0.2);
+    max-width: 360px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
     margin: auto;
+    background: var(--header-bg);
+    color: var(--text-light);
+}
+
+dialog::backdrop {
+    background: rgba(0, 0, 0, 0.6);
+}
+
+.player-dialog h2 {
+    margin-bottom: 1.2rem;
+    font-size: 1.2rem;
+    text-align: center;
+}
+
+.player-dialog label {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 0.3rem;
+    color: #aaa;
+}
+
+.player-dialog input {
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    font-family: "Poppins", sans-serif;
+    font-size: 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--bg);
+    color: var(--text-light);
+    margin-bottom: 1.2rem;
+}
+
+.mark-select {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.mark-select p {
+    font-size: 0.9rem;
+    color: #aaa;
+}
+
+.mark-select button {
+    width: 100%;
+    padding: 0.6rem;
+    font-family: "Poppins", sans-serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+
+#player-marker-x {
+    background: var(--x-color);
+    color: white;
+}
+
+#player-marker-o {
+    background: var(--o-color);
+    color: white;
+}
+
+.mark-select button:hover {
+    opacity: 0.85;
 }

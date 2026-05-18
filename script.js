@@ -52,17 +52,27 @@ function Cell() {
 }
 
 // Player object
-function Player(name, mark, score) {
-    return { name, mark, score };
+function Player(name, mark, score, bot) {
+    return { name, mark, score, bot };
 }
 
 // GameController IIFE
 const game = (function GameController() {
     const board = Gameboard();
-    const playerX = Player("Player X", "X", 0);
-    const playerO = Player("Player O", "O", 0);
+    const playerX = Player("Player X", "X", 0, true);
+    const playerO = Player("Player O", "O", 0, true);
     let activePlayer = playerX;
     let startingPlayer = playerX;
+    const winningIdx = [
+            [[0, 0], [0, 1], [0, 2]],
+            [[1, 0], [1, 1], [1, 2]], 
+            [[2, 0], [2, 1], [2, 2]],
+            [[0, 0], [1, 0], [2, 0]],
+            [[0, 1], [1, 1], [2, 1]],
+            [[0, 2], [1, 2], [2, 2]],
+            [[0, 0], [1, 1], [2, 2]],
+            [[2, 0], [1, 1], [0, 2]],
+        ];
 
     const getBoard = () => board.getBoard();
     const getActivePlayer = () => activePlayer;
@@ -70,11 +80,17 @@ const game = (function GameController() {
     const setPlayer = (name, mark) => {
         if (mark === "X") {
             playerX.name = name;
+            playerX.bot = false;
+            playerO.bot = true;
+            playerO.name = "Bot O";
             activePlayer = playerX;
             startingPlayer = playerX;
         }
         if (mark === "O") {
             playerO.name = name;
+            playerO.bot = false;
+            playerX.bot = true;
+            playerX.name = "Bot X";
             activePlayer = playerO;
             startingPlayer = playerO;
         }
@@ -88,22 +104,11 @@ const game = (function GameController() {
         if (freeCell) {
             const result = checkGameEnd();
             if (!result.over) switchPlayerTurn();
-            return result;
-
-        } else return { over: false };
+            return { ...result, moved: true };
+        } else return { over: false, moved: false };
     }
     const checkGameEnd = () => {
         const boardArray = board.getBoard();
-        const winningIdx = [
-            [[0, 0], [0, 1], [0, 2]],
-            [[1, 0], [1, 1], [1, 2]], 
-            [[2, 0], [2, 1], [2, 2]],
-            [[0, 0], [1, 0], [2, 0]],
-            [[0, 1], [1, 1], [2, 1]],
-            [[0, 2], [1, 2], [2, 2]],
-            [[0, 0], [1, 1], [2, 2]],
-            [[2, 0], [1, 1], [0, 2]],
-        ];
         const win = winningIdx.some((combination) => {
             const values = combination.map(([row, col]) => boardArray[row][col].getValue());
             return values.every(x => x !=="" && x === values[0]);
@@ -116,10 +121,41 @@ const game = (function GameController() {
         const tie = boardArray.every((row) =>
             row.every((cell) => cell.getValue() !== "")
         );
-        if (tie) return { over: true, winner: null };
+        if (tie) {
+            playerX.score++;
+            playerO.score++;
+            return { over: true, winner: null };
+        }
 
         return { over: false };
     };
+
+    const findMove = (targetMark) => {
+        const boardArray = board.getBoard();
+        const combo = winningIdx.find((combination) => {
+            const values = combination.map(([row, col]) => boardArray[row][col].getValue()); 
+            return values.filter(v => v === targetMark).length === 2 &&
+                    values.filter(v => v === "").length === 1;
+        });
+        return combo?.find(([row, col]) => boardArray[row][col].getValue() === "");
+    } 
+    
+    const randomMove = () => {
+        const boardArray = board.getBoard();
+        const emptyCells = [];
+
+        boardArray.forEach((row, r) => {
+            row.forEach((cell, c) => {
+                if (cell.getValue() === "") emptyCells.push([r, c])
+            });
+        });
+        return emptyCells[Math.floor(Math.random() * emptyCells.length)];
+    };
+
+    const getBotMove = (marker) => {
+        const opponentMark = marker === "X" ? "O" : "X";
+        return findMove(marker) || findMove(opponentMark) || randomMove();
+    }
 
     const resetGame = () => {
         board.resetBoard();
@@ -133,6 +169,7 @@ const game = (function GameController() {
         setPlayer,
         playTurn,
         getBoard,
+        getBotMove,
         resetGame
     }
 
@@ -146,10 +183,12 @@ const displayController = (function () {
     // Add event listeneres to dialog buttons
     markerBtns.forEach((btn) => {
             btn.addEventListener("click", () => {
-                const playerName = document.querySelector("#player-name").value;
+                const playerName = document.querySelector("#player-name").value.trim();
+                if (!playerName) return;
                 game.setPlayer(playerName, btn.textContent);
                 dialogWindow.close();
                 updateDisplay();
+                fireBotMove();
             })
         })
     dialogWindow.showModal();
@@ -173,10 +212,13 @@ const displayController = (function () {
                     gameOverFlag = result.over;
                     updateDisplay(result);
 
+                    // Bot's turn
+                    if (!gameOverFlag && result.moved) fireBotMove();
+
                 }
             })
         }
-        }
+    };
 
     const updateDisplay = (result = { over : false}) => {
         const board = game.getBoard();
@@ -184,7 +226,9 @@ const displayController = (function () {
         squares.forEach(square => {
             const row = square.dataset.row;
             const col = square.dataset.col;
-            square.textContent = board[row][col].getValue();
+            const value = board[row][col].getValue();
+            square.textContent = value;
+            square.dataset.mark = value;
         })
         // Update turn indicator and scoresheet
         const activePlayer = game.getActivePlayer();
@@ -199,28 +243,36 @@ const displayController = (function () {
         }
         const gameEndMsg = document.querySelector(".game-end .message");
         if (result.over) {
-            gameEndMsg.textContent = result.winner 
-                ? `${result.winner.name} wins!` 
+            gameEndMsg.textContent = result.winner
+                ? `${result.winner.name} wins!`
                 : "It's a tie!";
         }
-        };
+    };
 
-    // Render and update the display    
+    const fireBotMove = () => {
+        if (game.getActivePlayer().bot) {
+            gameOverFlag = true; // block input while bot is thinking
+            setTimeout(() => {
+                const [botRow, botCol] = game.getBotMove(game.getActivePlayer().mark);
+                const botResult = game.playTurn(botRow, botCol);
+                gameOverFlag = botResult.over;
+                updateDisplay(botResult);
+            }, 500);
+        }
+    };
+
+    // Render and update the display
     renderDisplay();
-    
+
     // Add event listener for Restart button
     const restartBtn = document.querySelector("#restart");
     restartBtn.addEventListener("click", () => {
-        // Reset the board
-        game.resetGame(); // Also switches player turn so whoever went first last goes second this time
-        // Reset gameOverFlag
+        game.resetGame();
         gameOverFlag = false;
-        // Render and update display
         renderDisplay();
         updateDisplay();
-        // Wipe game end message
-        const gameEnd = document.querySelector(".game-end .message");
-        gameEnd.textContent = "";
+        document.querySelector(".game-end .message").textContent = "";
+        fireBotMove();
     })
     }
 )();
